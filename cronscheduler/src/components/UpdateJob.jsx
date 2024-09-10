@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaSave, FaTrash, FaUpload } from 'react-icons/fa';
+import { FaSave, FaTrash, FaUpload,FaPlus } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import { Cron } from 'react-js-cron'
 import { useParams } from 'react-router-dom';
@@ -12,12 +12,12 @@ import { useNavigate } from 'react-router-dom';
  const UpdateJob = () => {
   const [formData, setFormData] = useState({
     jobName: "",
-    sqlQuery: "",
+    sqlQuery: [""],
     databaseUrl : "",
     databaseName: "",
     databaseUsername:"", 
     databasePassword: "",
-    keyUserEmail:"",
+    keyUserEmail:[""],
     emailBody: "",
     emailSubject: "",
     cronFrequency: "",
@@ -26,7 +26,7 @@ import { useNavigate } from 'react-router-dom';
   })
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [cronFrequency, setCronFrequency] = useState('0 0 * * *');
+  const [cronFrequency, setCronFrequency] = useState('0 * * * *');
   const {jobId} = useParams();
   const navigate = useNavigate();
 
@@ -36,6 +36,23 @@ import { useNavigate } from 'react-router-dom';
         [e.target.name]: e.target.value
     })
   }
+
+
+  const handleArrayChange = (e, index, field) => {
+    const newArray = [...formData[field]];
+    newArray[index] = e.target.value;
+    setFormData({
+      ...formData,
+      [field]: newArray
+    });
+  };
+
+  const addArrayField = (field) => {
+    setFormData({
+      ...formData,
+      [field]: [...formData[field], ""]
+    });
+  };
 
 
   const handleSubmit = (e) => {
@@ -54,12 +71,12 @@ import { useNavigate } from 'react-router-dom';
       // alert("Job updated successfully");
        setFormData({
            jobName: "",
-           sqlQuery: "",
+           sqlQuery: [""],
            databaseUrl : "",
            databaseName: "",
            databaseUsername:"", 
            databasePassword: "",
-           keyUserEmail:"",
+           keyUserEmail:[""],
            emailBody: "",
            emailSubject: "",
            cronFrequency: "* * * * *",
@@ -104,7 +121,14 @@ import { useNavigate } from 'react-router-dom';
           </div>
           <div>
             <label className="block text-gray-700">SQL Query</label>
-            <textarea value={formData.sqlQuery} name='sqlQuery' className="w-full p-2 border rounded" rows="4" onChange={handleChange}></textarea>
+            {formData.sqlQuery.map((query, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <textarea value={query} name='sqlQuery' className="w-full p-2 border rounded" rows="2" onChange={(e) => handleArrayChange(e, index, 'sqlQuery')}></textarea>
+                <button type="button" className="bg-blue-500 text-white p-2 rounded" onClick={() => addArrayField('sqlQuery')}>
+                  <FaPlus className='' />
+                </button>
+              </div>
+            ))}
           </div>
           <div>
             <label className="block text-gray-700">Database Server URL</label>
@@ -124,7 +148,14 @@ import { useNavigate } from 'react-router-dom';
           </div>
           <div>
             <label className="block text-gray-700">Key User Email</label>
-            <input value={formData.keyUserEmail} name='keyUserEmail' type="email" className="w-full p-2 border rounded" onChange={handleChange} />
+            {formData.keyUserEmail.map((email, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <input value={email} name='keyUserEmail' type="email" className="w-full p-2 border rounded" onChange={(e) => handleArrayChange(e, index, 'keyUserEmail')} />
+                <button type="button" className="bg-blue-500 text-white p-2 rounded" onClick={() => addArrayField('keyUserEmail')}>
+                  <FaPlus />
+                </button>
+              </div>
+            ))}
           </div>
           <div>
             <label className="block text-gray-700">Email Subject</label>
