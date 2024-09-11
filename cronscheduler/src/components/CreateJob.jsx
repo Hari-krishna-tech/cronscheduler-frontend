@@ -155,8 +155,28 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaSave, FaTrash, FaPlus } from 'react-icons/fa';
-import Cron from 'react-js-cron';
+import { FaSave, FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
+// import Cron from 'react-js-cron';
+import cronstrue from 'cronstrue';
+import Cron from 'cron-validate'
+import zod from 'zod';
+
+const jobSchema = zod.object({
+  jobName: zod.string().min(1).max(50),
+  sqlQuery: zod.array(zod.string().min(1).max(1000)).min(1),
+  databaseUrl: zod.string().url(),
+  databaseName: zod.string().min(1).max(50),
+  databaseUsername: zod.string().min(1).max(50),
+  databasePassword: zod.string().min(1).max(50),
+  keyUserEmail: zod.array(zod.string().email()),
+  emailBody: zod.string().min(1).max(1000),
+  emailSubject: zod.string().min(1).max(100),
+  cronFrequency: zod.string().min(1),
+  startDate: zod.date(),
+  endDate: zod.date()
+});
+
+
 
 const CreateJob = () => {
   const [formData, setFormData] = useState({
@@ -177,6 +197,9 @@ const CreateJob = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [cronFrequency, setCronFrequency] = useState('0 * * * *');
+  const [selectDatabase, setSelectDatabase] = useState("jdbc:mysql://")
+
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -194,6 +217,16 @@ const CreateJob = () => {
       [field]: newArray
     });
   };
+  const deleteArrayField = (field, index) => {
+    
+    const newArray = [...formData[field]];
+    if(newArray.length == 0) return;
+    newArray.splice(index, 1);
+    setFormData({
+     ...formData,
+      [field]: newArray
+    });
+  }
 
   const addArrayField = (field) => {
     setFormData({
@@ -202,15 +235,33 @@ const CreateJob = () => {
     });
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.post(`http://localhost:8080/api/jobs`, {
-      ...formData,
-      startDate,
+    const finalForm = {
+      ...formData, 
+      startDate, 
       endDate,
-      cronFrequency
-    }).then(res => {
+      cronFrequency,
+      databaseUrl: selectDatabase + formData.databaseUrl + "/" + formData.databaseName
+    }
+    
+   // console.log(zod.isValid(finalForm));
+   const result = jobSchema.safeParse(finalForm);
+    if(!result.success || !Cron(cronFrequency).isValid()) {
+      setShowModal(true);
+      console.log("hi");
+      return;
+    };
+
+    
+    
+    console.log(result.data);
+    axios.post(`http://localhost:8080/api/jobs`, result.data).then(res => {
       console.log(res.data);
 
       setFormData({
@@ -235,6 +286,7 @@ const CreateJob = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gray-100 p-6 flex items-center justify-center">
       <div className="container mx-auto bg-white p-6 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-4">Create New Job</h1>
@@ -251,9 +303,22 @@ const CreateJob = () => {
                 <button type="button" className="bg-blue-500 text-white p-2 rounded" onClick={() => addArrayField('sqlQuery')}>
                   <FaPlus />
                 </button>
+
+                <button type="button" className="bg-blue-500 text-white p-2 rounded" onClick={() => deleteArrayField('sqlQuery', index)}>
+                  <FaMinus />
+                </button>
               </div>
             ))}
           </div>
+
+          <div>
+  <label for="database" class="block text-gray-700">Select Database</label>
+  <select id="database" value={selectDatabase} onChange={() => setSelectDatabase(selectDatabase)} class="w-full p-2 border rounded">
+    <option value="jdbc:mysql://">MySQL</option>
+    <option value="jdbc:postgresql://">PostgreSQL</option>
+    <option value="jdbc:sqlserver://">MS SQL</option>
+  </select>
+</div>
           <div>
             <label className="block text-gray-700">Database Server URL</label>
             <input value={formData.databaseUrl} name='databaseUrl' type="text" className="w-full p-2 border rounded" onChange={handleChange} />
@@ -278,6 +343,10 @@ const CreateJob = () => {
                 <button type="button" className="bg-blue-500 text-white p-2 rounded" onClick={() => addArrayField('keyUserEmail')}>
                   <FaPlus />
                 </button>
+
+                <button type="button" className="bg-blue-500 text-white p-2 rounded" onClick={() => deleteArrayField('keyUserEmail', index)}>
+                  <FaMinus />
+                </button>
               </div>
             ))}
           </div>
@@ -291,8 +360,9 @@ const CreateJob = () => {
           </div>
           <div>
             <label className="block text-gray-700">Cron Frequency</label>
-            <Cron value={cronFrequency} setValue={setCronFrequency} />
-            <p className="mt-2 text-gray-600">Selected Frequency: {cronFrequency}</p>
+            
+            <input value={cronFrequency} name='cronFrequency' type="text" className="w-full p-2 border rounded"      onChange={(e)=>setCronFrequency(e.target.value)}/>
+            <p className="mt-2 text-gray-600">Selected Frequency: {Cron(cronFrequency).isValid()?cronstrue.toString(cronFrequency):"Enter Valid Expression"}</p>
           </div>
           <div>
             <label className="block text-gray-700">Start Date</label>
@@ -315,6 +385,25 @@ const CreateJob = () => {
         </form>
       </div>
     </div>
+
+    {showModal && (
+    <div className='fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center'>
+        <div className='bg-white p-6 rounded-lg shadow-lg text-center'>
+            <h3 className='text-lg font-semibold mb-4'>Enter Correct Details</h3>
+            {/* <p className='mb-6 font-bold'>Are you sure? It will be removed Premanently!</p> */}
+            <div className='flex justify-center'>
+                <button
+                    className='bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400'
+                    onClick={closeModal}
+                >Cancel</button>
+            </div>
+        </div>
+    </div>
+  )}
+
+    
+
+    </>
   );
 };
 
