@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, {useState, useEffect} from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
 
 // const jobs = [
 //   { id: 1, name: 'Job 1', startDate: '2024-09-01', endDate: '2024-09-10', status: 'Active' },
@@ -37,7 +38,10 @@ const CronSchedulerLandingPage = () => {
         setShowModal(true);
         setRowtoDelete(id);
     }
-
+    
+    const formattedDate = (isoString) => {
+       return format(parseISO(isoString), 'PPpp');
+    }
     
     
     const confirmDelete = () => {
@@ -77,8 +81,8 @@ const CronSchedulerLandingPage = () => {
             {jobs.map((job) => (
               <tr key={job.id} className="hover:bg-gray-100">
                 <td className="py-3 px-4 border-b border-gray-200">{job.jobName}</td>
-                <td className="py-3 px-4 border-b border-gray-200">{job.startDate}</td>
-                <td className="py-3 px-4 border-b border-gray-200">{job.endDate}</td>
+                <td className="py-3 px-4 border-b border-gray-200">{formattedDate(job.startDateTime)}</td>
+                <td className="py-3 px-4 border-b border-gray-200">{formattedDate(job.endDateTime)}</td>
                 <td className="py-3 px-4 border-b border-gray-200">{job.status}</td>
                 <td className="py-3 px-4 border-b border-gray-200 flex space-x-2">
                     <Link to={`/update-job/${job.id}`}>

@@ -23,8 +23,8 @@ const jobSchema = zod.object({
   emailBody: zod.string().min(1).max(1000),
   emailSubject: zod.string().min(1).max(100),
   cronFrequency: zod.string().min(1),
-  startDate: zod.date(),
-  endDate: zod.date()
+  startDate: zod.string(),
+  endDate: zod.string()
 });
 //import Cron from 'react-cron-generator';
 //import '../node_modules/react-cron-generator/dist/cron-builder.css';
@@ -40,11 +40,11 @@ const jobSchema = zod.object({
     emailBody: "",
     emailSubject: "",
     cronFrequency: "",
-    startDate: new Date(),
-    endDate: new Date(),
+    startDate: new Date().toISOString().slice(0,16),
+    endDate: new Date().toISOString().slice(0,16),
   })
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  // const [startDate, setStartDate] = useState(new Date());
+  // const [endDate, setEndDate] = useState(new Date());
   const [cronFrequency, setCronFrequency] = useState('0 * * * *');
 
   const [selectDatabase, setSelectDatabase] = useState("jdbc:mysql://")
@@ -104,8 +104,6 @@ const jobSchema = zod.object({
 
     const finalForm = {
       ...formData, 
-      startDate, 
-      endDate,
       cronFrequency,
       databaseUrl: selectDatabase + formData.databaseUrl + "/" + formData.databaseName
     }
@@ -132,8 +130,8 @@ const jobSchema = zod.object({
            emailBody: "",
            emailSubject: "",
            cronFrequency: "* * * * *",
-           startDate: new Date(),
-           endDate: new Date(),
+           startDate: new Date().toISOString().slice(0,16),
+           endDate: new Date().toISOString().slice(0,16),
        })
        navigate("/");
     }).catch(error => {
@@ -150,15 +148,14 @@ const jobSchema = zod.object({
     axios.get(`http://localhost:8080/api/jobs/${jobId}`).then(res => {
         setFormData(preData => {
             setCronFrequency(res.data.cronFrequency);
-            setStartDate(res.data.startDate);
-            setEndDate(res.data.endDate);
+            // setStartDate(res.data.startDate);
+            // setEndDate(res.data.endDate);
             return {
                 ...preData,
                 ...res.data
             }
         })
-        
-        
+      
     })
   }, [])
 
@@ -242,11 +239,15 @@ const jobSchema = zod.object({
           </div>
           <div>
             <label className="block text-gray-700">Start Date</label>
-            <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} className="w-full p-2 border rounded" />
+            {/* <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} className="w-full p-2 border rounded" /> */}
+
+            <input defaultValue={formData.startDateTime} onChange={handleChange} type="datetime-local" id="startTime" name="startDateTime" required className="w-full p-2 border rounded"/>
           </div>
           <div>
             <label className="block text-gray-700">End Date</label>
-            <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} className="w-full p-2 border rounded" />
+            {/* <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} className="w-full p-2 border rounded" /> */}
+
+            <input defaultValue={formData.endDateTime} onChange={handleChange} type="datetime-local" id="endTime" name="endDateTime" required className="w-full p-2 border rounded"/>
           </div>
           <div className="flex space-x-4">
             <button type="submit" className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">

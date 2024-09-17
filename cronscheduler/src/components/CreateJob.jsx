@@ -21,12 +21,12 @@ import { useNavigate } from 'react-router-dom';
     emailBody: "",
     emailSubject: "",
     cronFrequency: "",
-    startDate: new Date(),
-    endDate: new Date(),
+    startDateTime: new Date(),
+    endDateTime: new Date(),
   })
 
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDateTime, setstartDateTime] = useState(new Date());
+  const [endDateTime, setendDateTime] = useState(new Date());
   const [cronFrequency, setCronFrequency] = useState('0 0 * * *');
   const navigate = useNavigate();
 
@@ -42,8 +42,8 @@ import { useNavigate } from 'react-router-dom';
     e.preventDefault();
 
     axios.post(`http://localhost:8080/api/jobs`, {...formData,
-        startDate,
-        endDate,
+        startDateTime,
+        endDateTime,
         cronFrequency
     }).then(res => {
         console.log(res.data);
@@ -59,8 +59,8 @@ import { useNavigate } from 'react-router-dom';
            emailBody: "",
            emailSubject: "",
            cronFrequency: "* * * * *",
-           startDate: new Date(),
-           endDate: new Date(),
+           startDateTime: new Date(),
+           endDateTime: new Date(),
        })
        navigate("/");
     }).catch(error => {
@@ -123,11 +123,11 @@ import { useNavigate } from 'react-router-dom';
           </div>
           <div>
             <label className="block text-gray-700">Start Date</label>
-            <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} className="w-full p-2 border rounded" />
+            <DatePicker selected={startDateTime} onChange={(date) => setstartDateTime(date)} className="w-full p-2 border rounded" />
           </div>
           <div>
             <label className="block text-gray-700">End Date</label>
-            <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} className="w-full p-2 border rounded" />
+            <DatePicker selected={endDateTime} onChange={(date) => setendDateTime(date)} className="w-full p-2 border rounded" />
           </div>
           <div className="flex space-x-4">
             <button type="submit" className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -172,8 +172,8 @@ const jobSchema = zod.object({
   emailBody: zod.string().min(1).max(1000),
   emailSubject: zod.string().min(1).max(100),
   cronFrequency: zod.string().min(1),
-  startDate: zod.date(),
-  endDate: zod.date()
+  startDateTime: zod.string(),
+  endDateTime: zod.string()
 });
 
 
@@ -190,12 +190,12 @@ const CreateJob = () => {
     emailBody: "",
     emailSubject: "",
     cronFrequency: "",
-    startDate: new Date(),
-    endDate: new Date(),
+    startDateTime: new Date().toISOString().slice(0, 16),
+    endDateTime: new Date().toISOString().slice(0, 16),
   });
 
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  // const [startDateTime, setstartDateTime] = useState(new Date());
+  // const [endDateTime, setendDateTime] = useState(new Date());
   const [cronFrequency, setCronFrequency] = useState('0 * * * *');
   const [selectDatabase, setSelectDatabase] = useState("jdbc:mysql://")
 
@@ -244,8 +244,6 @@ const CreateJob = () => {
 
     const finalForm = {
       ...formData, 
-      startDate, 
-      endDate,
       cronFrequency,
       databaseUrl: selectDatabase + formData.databaseUrl + "/" + formData.databaseName
     }
@@ -254,9 +252,9 @@ const CreateJob = () => {
    const result = jobSchema.safeParse(finalForm);
     if(!result.success || !Cron(cronFrequency).isValid()) {
       setShowModal(true);
-      console.log("hi");
+      console.log(result.error.message);
       return;
-    };
+    }
 
     
     
@@ -275,8 +273,8 @@ const CreateJob = () => {
         emailBody: "",
         emailSubject: "",
         cronFrequency: "* * * * *",
-        startDate: new Date(),
-        endDate: new Date(),
+        startDateTime: new Date().toISOString().slice(0,16),
+        endDateTime: new Date().toISOString().slice(0, 16),
       });
       navigate("/");
     }).catch(error => {
@@ -366,11 +364,13 @@ const CreateJob = () => {
           </div>
           <div>
             <label className="block text-gray-700">Start Date</label>
-            <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} className="w-full p-2 border rounded" />
+            {/* <DatePicker selected={startDateTime} onChange={(date) => setstartDateTime(date)} className="w-full p-2 border rounded" /> */}
+            <input defaultValue={formData.startDateTime} onChange={handleChange} type="datetime-local" id="startTime" name="startDateTime" required className="w-full p-2 border rounded"/>
           </div>
           <div>
             <label className="block text-gray-700">End Date</label>
-            <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} className="w-full p-2 border rounded" />
+            {/* <DatePicker selected={endDateTime} onChange={(date) => setendDateTime(date)} className="w-full p-2 border rounded" /> */}
+            <input defaultValue={formData.endDateTime} onChange={handleChange} type="datetime-local" id="endTime" name="endDateTime" required className="w-full p-2 border rounded"/>
           </div>
           <div className="flex space-x-4">
             <button type="submit" className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">

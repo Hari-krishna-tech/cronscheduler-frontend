@@ -13,6 +13,8 @@
     "axios": "^1.7.7",
     "cron-validate": "^1.4.5",
     "cronstrue": "^2.50.0",
+    "date-fns": "^4.1.0",
+    "rc-time-picker": "^3.7.3",
     "react": "^18.3.1",
     "react-cron-generator": "^2.0.12",
     "react-datepicker": "^7.3.0",
