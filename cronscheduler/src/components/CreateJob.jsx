@@ -220,7 +220,7 @@ const CreateJob = () => {
   const deleteArrayField = (field, index) => {
     
     const newArray = [...formData[field]];
-    if(newArray.length == 0) return;
+    if(newArray.length == 1) return;
     newArray.splice(index, 1);
     setFormData({
      ...formData,
